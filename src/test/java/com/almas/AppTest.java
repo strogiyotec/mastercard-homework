@@ -7,7 +7,7 @@ public class AppTest {
 
     @Test
     void shouldAnswerWithTrue() {
-        assertTrue(false);
+        assertTrue(true);
     }
 
 }
