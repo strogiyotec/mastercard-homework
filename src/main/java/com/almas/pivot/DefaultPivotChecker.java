@@ -7,7 +7,7 @@ public final class DefaultPivotChecker implements PivotChecker {
         final double currentLow = getValue(lines[currentIndex], Pivots.PIVOT_LOW_INDEX);
         for (
             int indexDown = currentIndex - 1, indexUp = currentIndex + 1;
-            indexDown > currentIndex - steps || indexUp < currentIndex + steps;
+            indexDown > Math.max(0, currentIndex - steps) || indexUp < overFlowAwareHighIndex(currentIndex, steps, lines.length);
             indexDown--, indexUp++
         ) {
             if (indexDown > 0) {
@@ -28,20 +28,20 @@ public final class DefaultPivotChecker implements PivotChecker {
 
     @Override
     public boolean isHigh(final String[] lines, final int steps, final int currentIndex) {
-        final double currentHigh = getValue(lines[currentIndex], Pivots.PIVOT_LOW_INDEX);
+        final double currentHigh = getValue(lines[currentIndex], Pivots.PIVOT_HIGH_INDEX);
         for (
             int indexDown = currentIndex - 1, indexUp = currentIndex + 1;
-            indexDown > currentIndex - steps || indexUp < currentIndex + steps;
+            indexDown > Math.max(0, currentIndex - steps) || indexUp < overFlowAwareHighIndex(currentIndex, steps, lines.length);
             indexDown--, indexUp++
         ) {
             if (indexDown > 0) {
-                final double highDown = getValue(lines[indexDown], Pivots.PIVOT_LOW_INDEX);
+                final double highDown = getValue(lines[indexDown], Pivots.PIVOT_HIGH_INDEX);
                 if (highDown > currentHigh) {
                     return false;
                 }
             }
             if (indexUp < lines.length) {
-                final double highUp = getValue(lines[indexUp], Pivots.PIVOT_LOW_INDEX);
+                final double highUp = getValue(lines[indexUp], Pivots.PIVOT_HIGH_INDEX);
                 if (highUp > currentHigh) {
                     return false;
                 }
@@ -50,7 +50,15 @@ public final class DefaultPivotChecker implements PivotChecker {
         return true;
     }
 
+    private int overFlowAwareHighIndex(final int currentIndex, final int steps, final int length) {
+        try {
+            return Math.addExact(steps, currentIndex);
+        } catch (final ArithmeticException exc) {
+            return length;
+        }
+    }
+
     private static double getValue(final String line, int index) {
-        return Double.parseDouble(line.split(",")[index].replace("\"", ""));
+        return Double.parseDouble(line.split("\",")[index].replace("\"", ""));
     }
 }
